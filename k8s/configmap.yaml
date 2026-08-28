@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cost-intelligence-config
+data:
+  OLLAMA_BASE_URL: "http://ollama:11434"
+  OLLAMA_CHAT_MODEL: "llama3.2:3b"
+  OLLAMA_EMBED_MODEL: "nomic-embed-text"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "cost_intelligence"
+  POSTGRES_USER: "cost_user"
+  POSTGRES_POOL_SIZE: "5"
+  POSTGRES_MAX_OVERFLOW: "10"
+  CHROMA_HOST: "chromadb"
+  CHROMA_PORT: "8000"
+  CHROMA_COLLECTION: "cost_optimization_patterns"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  REDIS_CACHE_TTL: "3600"
+  REDIS_ENABLED: "true"
+  SAMPLE_DATA_PATH: "/app/data/sample_billing_data.csv"
+  FORECAST_HORIZON_DAYS: "90"
+  FORECAST_HOLDOUT_DAYS: "30"
+  MAPE_THRESHOLD: "15.0"
+  LOG_LEVEL: "INFO"
+  APP_ENV: "production"
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cost-intelligence-storage
+provisioner: k8s.io/minikube-hostpath
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cost-intelligence-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: cost-intelligence-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-storage-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: cost-intelligence-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-storage-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: cost-intelligence-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chromadb-storage-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: cost-intelligence-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-storage-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cost-intelligence-storage
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cost-intelligence-secrets
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "change-me-in-production"
